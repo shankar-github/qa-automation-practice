@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Automation Practice Playground</title>
+<style>
+  :root { font-family: Arial, sans-serif; color: #202938; background: #f4f6f9; }
+  body { margin: 0; }
+  header { background: #17365d; color: white; padding: 24px max(20px, calc((100% - 1100px)/2)); }
+  header h1 { margin: 0 0 8px; }
+  main { max-width: 1100px; margin: 24px auto; padding: 0 18px 48px; }
+  section { background: white; border: 1px solid #dce2ea; border-radius: 9px; padding: 20px; margin: 18px 0; }
+  h2 { margin-top: 0; color: #17365d; font-size: 1.25rem; }
+  h3 { color: #294d73; font-size: 1rem; margin-bottom: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 15px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-weight: 600; font-size: .92rem; }
+  input, select, textarea, button { font: inherit; padding: 9px 10px; border: 1px solid #aeb9c7; border-radius: 5px; }
+  input[type=checkbox], input[type=radio], input[type=color], input[type=range] { width: auto; }
+  input[type=checkbox], input[type=radio] { margin-right: 7px; }
+  textarea { min-height: 85px; resize: vertical; }
+  button { cursor: pointer; background: #e8eef6; }
+  button.primary { background: #1f5f99; color: white; border-color: #1f5f99; }
+  button:disabled, input:disabled { opacity: .55; cursor: not-allowed; }
+  .inline { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .note { color: #586579; font-size: .9rem; }
+  .status { padding: 10px; background: #eef6ff; border-left: 4px solid #1f5f99; min-height: 22px; margin-top: 10px; }
+  .tile { padding: 18px; border: 1px dashed #8b9bb0; border-radius: 6px; background: #f8fafc; }
+  .dropzone { min-height: 75px; display: grid; place-items: center; background: #f1f5f9; border: 2px dashed #7b8da5; }
+  .draggable { display: inline-block; padding: 12px 18px; background: #fce7b2; border: 1px solid #c58a19; cursor: grab; }
+  .hover-card { display: inline-block; padding: 18px; background: #dcecff; border-radius: 6px; }
+  .hover-card .hover-details { display: none; margin-top: 8px; }
+  .hover-card:hover .hover-details { display: block; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #cbd5e1; padding: 9px; text-align: left; }
+  th { background: #eaf0f7; }
+  .sort-button { border: 0; background: transparent; padding: 3px; font-weight: 700; }
+  #table-pagination { align-items: center; }
+  a { color: #075da8; }
+  iframe { width: 100%; min-height: 110px; border: 1px solid #aeb9c7; }
+  .hidden { display: none; }
+  code { background: #edf1f5; padding: 2px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>QA Automation Practice Playground</h1>
+  <div>Self-contained Selenium / Playwright practice page — forms, controls, widgets and browser interactions.</div>
+</header>
+<main>
+  <section id="basic-inputs">
+    <h2>1. Basic Form and Gender Selection</h2>
+    <form id="practice-form">
+      <div class="grid">
+        <div class="field"><label for="full-name">Full name *</label><input id="full-name" name="fullName" type="text" placeholder="Enter your name" required></div>
+        <div class="field"><label for="email">Email *</label><input id="email" name="email" type="email" placeholder="name@example.com" required></div>
+        <div class="field"><label for="password">Password *</label><input id="password" name="password" type="password" placeholder="Enter password" minlength="6" required></div>
+        <div class="field"><label for="phone">Telephone</label><input id="phone" name="phone" type="tel" placeholder="+977-98XXXXXXXX"></div>
+        <div class="field"><label for="number">Number (1–100)</label><input id="number" name="number" type="number" min="1" max="100" value="10"></div>
+        <div class="field"><label for="search">Search</label><input id="search" name="search" type="search" placeholder="Search text"></div>
+        <div class="field"><label for="website">URL</label><input id="website" name="website" type="url" placeholder="https://example.com"></div>
+      </div>
+      <h3>Gender *</h3>
+      <div class="inline" role="group" aria-label="Gender">
+        <label><input type="radio" name="gender" value="male" id="gender-male" required>Male</label>
+        <label><input type="radio" name="gender" value="female" id="gender-female">Female</label>
+        <label><input type="radio" name="gender" value="other" id="gender-other">Other</label>
+      </div>
+      <div class="actions">
+        <button class="primary" type="submit" id="submit-form">Submit form</button>
+        <button type="reset" id="reset-form">Reset form</button>
+        <button type="button" id="fill-form">Fill sample data</button>
+      </div>
+      <div class="status" id="form-status" aria-live="polite">Form status: complete required fields and submit.</div>
+      <div id="submission-results" class="tile" aria-live="polite" style="margin-top:14px">
+        <h3>Submitted Form Data</h3>
+        <p id="submission-empty">No form submissions yet.</p>
+        <div id="submission-output"></div>
+        <h3>Submission History</h3>
+        <ol id="submission-history"><li>No submissions recorded.</li></ol>
+      </div>
+    </form>
+  </section>
+
+  <section id="days">
+    <h2>2. Days — Multiple Checkbox Selection</h2>
+    <p class="note">Select one or more days. Practice selecting individual checkboxes, selecting all, and validating the checked values.</p>
+    <div class="inline" id="days-options">
+      <label><input type="checkbox" name="days" value="Monday" id="day-monday">Monday</label>
+      <label><input type="checkbox" name="days" value="Tuesday" id="day-tuesday">Tuesday</label>
+      <label><input type="checkbox" name="days" value="Wednesday" id="day-wednesday">Wednesday</label>
+      <label><input type="checkbox" name="days" value="Thursday" id="day-thursday">Thursday</label>
+      <label><input type="checkbox" name="days" value="Friday" id="day-friday">Friday</label>
+      <label><input type="checkbox" name="days" value="Saturday" id="day-saturday">Saturday</label>
+      <label><input type="checkbox" name="days" value="Sunday" id="day-sunday">Sunday</label>
+    </div>
+    <div class="status" id="days-status" aria-live="polite">Selected days: none.</div>
+  </section>
+
+  <section id="date-picker">
+    <h2>3. Date and Time Pickers</h2>
+    <div class="grid">
+      <div class="field"><label for="birth-date">Date</label><input id="birth-date" name="birthDate" type="date"></div>
+      <div class="field"><label for="meeting-time">Time</label><input id="meeting-time" name="meetingTime" type="time"></div>
+      <div class="field"><label for="appointment">Datetime-local</label><input id="appointment" name="appointment" type="datetime-local"></div>
+      <div class="field"><label for="month">Month</label><input id="month" name="month" type="month"></div>
+      <div class="field"><label for="week">Week</label><input id="week" name="week" type="week"></div>
+      <div class="field"><label for="favorite-color">Color</label><input id="favorite-color" name="color" type="color" value="#1f5f99"></div>
+      <div class="field"><label for="volume">Range: <output id="range-value">50</output></label><input id="volume" name="volume" type="range" min="0" max="100" value="50"></div>
+    </div>
+  </section>
+
+  <section id="uploads">
+    <h2>4. File Uploads</h2>
+    <div class="grid">
+      <div class="field"><label for="upload">Single file upload</label><input id="upload" name="upload" type="file"></div>
+      <div class="field"><label for="multiple-upload">Multiple file upload</label><input id="multiple-upload" name="multipleUpload" type="file" multiple></div>
+    </div>
+    <p class="note">Practice choosing a file, validating the file name/type, and selecting multiple files. Files are not sent to a server.</p>
+    <div class="status" id="upload-status" aria-live="polite">No files selected.</div>
+  </section>
+
+  <section id="other-controls">
+    <h2>5. Dropdowns and Text Areas</h2>
+    <h3>Dependent / Dynamic Dropdowns</h3>
+    <p class="note">Choose a country to load its cities, then choose a city to load its areas. The child dropdowns reset whenever the parent selection changes.</p>
+    <div class="grid" id="dependent-dropdowns">
+      <div class="field"><label for="dynamic-country">Country</label><select id="dynamic-country"><option value="">Select country</option><option value="nepal">Nepal</option><option value="india">India</option><option value="usa">United States</option></select></div>
+      <div class="field"><label for="dynamic-city">City</label><select id="dynamic-city" disabled><option value="">Select a country first</option></select></div>
+      <div class="field"><label for="dynamic-area">Area</label><select id="dynamic-area" disabled><option value="">Select a city first</option></select></div>
+    </div>
+    <div class="status" id="dropdown-status" aria-live="polite">Select a country to load cities.</div>
+    <div class="grid" style="margin-top:18px">
+      <div class="field"><label for="country">Single select</label><select id="country" name="country"><option value="">Choose a country</option><option value="np">Nepal</option><option value="in">India</option><option value="us">United States</option><option value="uk">United Kingdom</option></select></div>
+      <div class="field"><label for="multi-country">Multi-select (Ctrl/Cmd-click)</label><select id="multi-country" name="multiCountry" multiple size="4"><option value="np">Nepal</option><option value="in">India</option><option value="us">United States</option><option value="uk">United Kingdom</option></select></div>
+      <div class="field"><label for="browser">Datalist / autocomplete suggestions</label><input id="browser" name="browser" list="browser-options" placeholder="Type a browser"><datalist id="browser-options"><option value="Chrome"><option value="Firefox"><option value="Safari"><option value="Edge"></datalist></div>
+      <div class="field"><label for="comments">Textarea</label><textarea id="comments" name="comments" placeholder="Enter comments"></textarea></div>
+    </div>
+  </section>
+
+  <section id="tables">
+    <h2>6. Tables and Data Extraction</h2>
+    <div class="grid" style="margin-bottom:12px;align-items:end">
+      <div class="field"><label for="table-search">Search employees</label><input id="table-search" type="search" placeholder="Search any column..."></div>
+      <div class="field"><label for="page-size">Rows per page</label><select id="page-size"><option value="2">2</option><option value="5" selected>5</option><option value="10">10</option></select></div>
+    </div>
+    <table id="employee-table">
+      <thead><tr><th><button type="button" class="sort-button" data-column="0">ID ↕</button></th><th><button type="button" class="sort-button" data-column="1">Name ↕</button></th><th><button type="button" class="sort-button" data-column="2">Role ↕</button></th><th><button type="button" class="sort-button" data-column="3">Department ↕</button></th><th><button type="button" class="sort-button" data-column="4">Salary ↕</button></th><th><button type="button" class="sort-button" data-column="5">Status ↕</button></th></tr></thead>
+      <tbody>
+        <tr><td>101</td><td>Aarav</td><td>QA Engineer</td><td>Engineering</td><td>65000</td><td>Active</td></tr>
+        <tr><td>102</td><td>Priya</td><td>SDET</td><td>Engineering</td><td>82000</td><td>Active</td></tr>
+        <tr><td>103</td><td>Rohan</td><td>Analyst</td><td>Operations</td><td>58000</td><td>Inactive</td></tr>
+        <tr><td>104</td><td>Maya</td><td>QA Lead</td><td>Engineering</td><td>95000</td><td>Active</td></tr>
+        <tr><td>105</td><td>Samir</td><td>Automation Engineer</td><td>Platform</td><td>76000</td><td>Active</td></tr>
+        <tr><td>106</td><td>Nisha</td><td>Business Analyst</td><td>Operations</td><td>62000</td><td>Inactive</td></tr>
+        <tr><td>107</td><td>Kabir</td><td>QA Engineer</td><td>Product</td><td>71000</td><td>Active</td></tr>
+        <tr><td>108</td><td>Diya</td><td>SDET</td><td>Platform</td><td>88000</td><td>Active</td></tr>
+        <tr><td>109</td><td>Arjun</td><td>Test Analyst</td><td>Product</td><td>54000</td><td>Inactive</td></tr>
+        <tr><td>110</td><td>Sita</td><td>QA Lead</td><td>Engineering</td><td>99000</td><td>Active</td></tr>
+        <tr><td>111</td><td>Manish</td><td>Performance Tester</td><td>Platform</td><td>79000</td><td>Active</td></tr>
+        <tr><td>112</td><td>Riya</td><td>Developer</td><td>Engineering</td><td>92000</td><td>Active</td></tr>
+      </tbody>
+    </table>
+    <div class="actions" id="table-pagination"><button type="button" id="previous-page">Previous</button><span id="page-info" class="note" aria-live="polite">Page 1 of 3</span><button type="button" id="next-page">Next</button></div>
+    <p class="status" id="table-status" aria-live="polite">Showing employees.</p>
+    <p class="note">Practice row/column counts, extracting data, searching across all columns, sorting each column ascending/descending, changing page size, and navigating pages.</p>
+  </section>
+
+  <section id="validation">
+    <h2>7. Validation and Special States</h2>
+    <div class="grid">
+      <div class="field"><label for="required-field">Required field</label><input id="required-field" required placeholder="This field is required"></div>
+      <div class="field"><label for="readonly-field">Readonly field</label><input id="readonly-field" value="Cannot edit this value" readonly></div>
+      <div class="field"><label for="disabled-field">Disabled field</label><input id="disabled-field" value="Disabled input" disabled></div>
+      <div class="field"><label for="pattern-field">Pattern (5 digits)</label><input id="pattern-field" pattern="[0-9]{5}" placeholder="e.g. 12345" title="Enter exactly five digits"></div>
+    </div>
+    <div class="actions">
+      <button id="check-validity" type="button">Check validity</button>
+      <button id="toggle-disabled" type="button">Enable / disable field</button>
+      <button id="toggle-hidden" type="button">Show / hide element</button>
+    </div>
+    <p id="hidden-message" class="hidden">This element was hidden and is now visible.</p>
+    <div class="status" id="validation-status">Validation result will appear here.</div>
+  </section>
+
+  <section id="buttons-links">
+    <h2>8. Buttons, Links and Alerts</h2>
+    <div class="actions">
+      <button id="normal-button" type="button">Normal button</button>
+      <button id="double-click-button" type="button">Double-click me</button>
+      <button id="right-click-button" type="button">Right-click me</button>
+      <button id="delayed-button" type="button">Wait 2 seconds</button>
+      <button id="new-tab-button" type="button">Open new tab</button>
+      <button id="alert-button" type="button">Alert</button>
+      <button id="confirm-button" type="button">Confirm</button>
+      <button id="prompt-button" type="button">Prompt</button>
+    </div>
+    <p><a id="sample-link" href="#tables">Go to tables section</a> · <a id="external-link" href="https://example.com" target="_blank" rel="noopener">Open example.com</a></p>
+    <div class="status" id="interaction-status">No interaction yet.</div>
+  </section>
+
+  <section id="mouse-keyboard">
+    <h2>9. Mouse and Keyboard Interactions</h2>
+    <div class="grid">
+      <div class="tile">
+        <h3>Hover target</h3>
+        <div class="hover-card" id="hover-card">Move mouse over me<div class="hover-details" id="hover-details">Hover content is visible.</div></div>
+      </div>
+      <div class="tile">
+        <h3>Drag and drop</h3>
+        <div id="drag-source" class="draggable" draggable="true">Drag this item</div>
+        <div id="drop-target" class="dropzone">Drop here</div>
+      </div>
+      <div class="tile">
+        <h3>Keyboard input</h3>
+        <div class="field"><label for="keyboard-field">Type, select all, copy/paste</label><input id="keyboard-field" value="Automation practice"></div>
+        <p class="note">Try TAB, ENTER, ESC, CTRL/CMD+A and text entry.</p>
+      </div>
+      <div class="tile">
+        <h3>Content editable</h3>
+        <div id="editable" contenteditable="true" style="border:1px solid #aeb9c7;padding:10px;border-radius:5px">You can edit this text directly.</div>
+      </div>
+    </div>
+    <div class="status" id="drag-status">Drag status: waiting.</div>
+  </section>
+
+  <section id="widgets">
+    <h2>10. HTML Elements and Widgets</h2>
+    <div class="grid">
+      <div><h3>Details / summary</h3><details id="details-widget"><summary>Click to expand</summary><p id="details-content">Additional content is displayed after expanding.</p></details></div>
+      <div><h3>Progress</h3><progress id="progress" value="65" max="100">65%</progress> 65%</div>
+      <div><h3>Meter</h3><meter id="meter" min="0" max="100" low="30" high="80" optimum="90" value="72">72</meter> 72/100</div>
+      <div><h3>Output</h3><output id="calculation-output">Result: 12</output></div>
+      <div><h3>Image</h3><img id="sample-image" alt="Sample placeholder image" width="160" height="90" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='90'%3E%3Crect width='100%25' height='100%25' fill='%23dcecff'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' font-size='14' fill='%2317365d'%3ESample image%3C/text%3E%3C/svg%3E"></div>
+    </div>
+    <h3>Iframe</h3>
+    <iframe id="sample-frame" title="Practice iframe" srcdoc="<html><body style='font-family:Arial'><h3 id='frame-heading'>Inside iframe</h3><input id='frame-input' placeholder='Type inside frame'><button id='frame-button' onclick=\"document.getElementById('frame-result').textContent='Frame button clicked'\">Click inside frame</button><p id='frame-result'>Frame result</p></body></html>"></iframe>
+  </section>
+
+
+  <section id="dynamic">
+    <h2>11. Dynamic Content and Wait Conditions</h2>
+    <div class="actions">
+      <button id="add-item" type="button">Add item</button>
+      <button id="remove-item" type="button">Remove item</button>
+      <button id="change-text" type="button">Change text after 1 second</button>
+      <button id="load-data" type="button">Load data after 2 seconds</button>
+    </div>
+    <ul id="dynamic-list"><li class="dynamic-item">Initial item</li></ul>
+    <p id="changing-text">Original text</p>
+    <div class="status" id="async-result">Async result: not loaded.</div>
+  </section>
+
+  <section id="shadow-dom">
+    <h2>12. Shadow DOM</h2>
+    <p class="note">A custom element with an open shadow root. Practice locating the host and then its shadow-root input/button.</p>
+    <practice-shadow id="shadow-host"></practice-shadow>
+  </section>
+</main>
+<script>
+  const form = document.getElementById('practice-form');
+  const status = document.getElementById('form-status');
+  document.getElementById('volume').addEventListener('input', e => document.getElementById('range-value').textContent = e.target.value);
+  document.querySelectorAll('input[name="days"]').forEach(el => el.addEventListener('change', () => {
+    const selected = [...document.querySelectorAll('input[name="days"]:checked')].map(item => item.value);
+    document.getElementById('days-status').textContent = 'Selected days: ' + (selected.join(', ') || 'none') + '.';
+  }));
+  ['upload', 'multiple-upload'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+    const files = [...document.getElementById('upload').files, ...document.getElementById('multiple-upload').files];
+    document.getElementById('upload-status').textContent = files.length ? 'Selected files: ' + files.map(file => file.name).join(', ') : 'No files selected.';
+  }));
+  // Dependent dropdowns: each parent selection loads the next level.
+  const locationData = {
+    nepal: { Kathmandu: ['Baneshwor', 'Thamel', 'Patan'], Pokhara: ['Lakeside', 'Mahendrapul'], Butwal: ['Traffic Chowk', 'Golpark'] },
+    india: { Delhi: ['Connaught Place', 'Dwarka'], Mumbai: ['Andheri', 'Bandra'], Bengaluru: ['Whitefield', 'Indiranagar'] },
+    usa: { 'New York': ['Manhattan', 'Brooklyn'], 'San Francisco': ['SOMA', 'Sunset'], Seattle: ['Downtown', 'Capitol Hill'] }
+  };
+  const dynamicCountry = document.getElementById('dynamic-country');
+  const dynamicCity = document.getElementById('dynamic-city');
+  const dynamicArea = document.getElementById('dynamic-area');
+  const dropdownStatus = document.getElementById('dropdown-status');
+  function populateSelect(select, placeholder, values) {
+    select.replaceChildren(new Option(placeholder, ''));
+    values.forEach(value => select.add(new Option(value, value)));
+    select.disabled = values.length === 0;
+  }
+  dynamicCountry.addEventListener('change', () => {
+    const cities = Object.keys(locationData[dynamicCountry.value] || {});
+    populateSelect(dynamicCity, cities.length ? 'Select city' : 'Select a country first', cities);
+    populateSelect(dynamicArea, 'Select a city first', []);
+    dropdownStatus.textContent = cities.length ? cities.length + ' cities loaded.' : 'Select a country to load cities.';
+  });
+  dynamicCity.addEventListener('change', () => {
+    const areas = locationData[dynamicCountry.value]?.[dynamicCity.value] || [];
+    populateSelect(dynamicArea, areas.length ? 'Select area' : 'Select a city first', areas);
+    dropdownStatus.textContent = areas.length ? areas.length + ' areas loaded for ' + dynamicCity.value + '.' : 'Select a city to load areas.';
+  });
+  dynamicArea.addEventListener('change', () => {
+    dropdownStatus.textContent = dynamicArea.value ? 'Selected: ' + dynamicCountry.options[dynamicCountry.selectedIndex].text + ' → ' + dynamicCity.value + ' → ' + dynamicArea.value : 'Select an area.';
+  });
+
+  // Search, sort and paginate the employee table.
+  const employeeTable = document.getElementById('employee-table');
+  const tableBody = employeeTable.querySelector('tbody');
+  const allEmployeeRows = [...tableBody.rows].map(row => [...row.cells].map(cell => cell.textContent.trim()));
+  let currentPage = 1;
+  let sortColumn = -1;
+  let sortDirection = 1;
+  function renderEmployeeTable() {
+    const query = document.getElementById('table-search').value.trim().toLowerCase();
+    const pageSize = Number(document.getElementById('page-size').value);
+    let rows = allEmployeeRows.filter(row => row.some(value => value.toLowerCase().includes(query)));
+    if (sortColumn >= 0) rows.sort((a, b) => {
+      const left = a[sortColumn], right = b[sortColumn];
+      const comparison = sortColumn === 0 || sortColumn === 4 ? Number(left) - Number(right) : left.localeCompare(right);
+      return comparison * sortDirection;
+    });
+    const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+    currentPage = Math.min(currentPage, totalPages);
+    const start = (currentPage - 1) * pageSize;
+    const visibleRows = rows.slice(start, start + pageSize);
+    tableBody.replaceChildren();
+    visibleRows.forEach(values => {
+      const tr = document.createElement('tr');
+      values.forEach(value => { const td = document.createElement('td'); td.textContent = value; tr.appendChild(td); });
+      tableBody.appendChild(tr);
+    });
+    document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+    document.getElementById('previous-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages;
+    document.getElementById('table-status').textContent = rows.length ? 'Showing ' + (start + 1) + '–' + Math.min(start + pageSize, rows.length) + ' of ' + rows.length + ' matching employees.' : 'No matching employees found.';
+  }
+  document.getElementById('table-search').addEventListener('input', () => { currentPage = 1; renderEmployeeTable(); });
+  document.getElementById('page-size').addEventListener('change', () => { currentPage = 1; renderEmployeeTable(); });
+  document.getElementById('previous-page').addEventListener('click', () => { currentPage--; renderEmployeeTable(); });
+  document.getElementById('next-page').addEventListener('click', () => { currentPage++; renderEmployeeTable(); });
+  employeeTable.querySelectorAll('.sort-button').forEach(button => button.addEventListener('click', () => {
+    const column = Number(button.dataset.column);
+    sortDirection = sortColumn === column ? -sortDirection : 1;
+    sortColumn = column;
+    employeeTable.querySelectorAll('.sort-button').forEach(item => item.textContent = item.textContent.replace(/[↑↓↕]/g, '↕'));
+    button.textContent = button.textContent.replace('↕', sortDirection === 1 ? '↑' : '↓');
+    currentPage = 1;
+    renderEmployeeTable();
+  }));
+  renderEmployeeTable();
+
+  const submissionHistory = [];
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+
+    if (!form.reportValidity()) {
+      status.textContent = 'Validation error: ' + (form.querySelector(':invalid')?.validationMessage || 'Please correct the highlighted fields.');
+      return;
+    }
+
+    const formData = new FormData(form);
+    const submittedValues = {};
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        submittedValues[key] = value.name || '(no file selected)';
+      } else if (Object.prototype.hasOwnProperty.call(submittedValues, key)) {
+        submittedValues[key] = [].concat(submittedValues[key], value);
+      } else {
+        submittedValues[key] = value;
+      }
+    }
+
+    submissionHistory.push(submittedValues);
+    status.textContent = 'Form submitted successfully. Submission #' + submissionHistory.length;
+    document.getElementById('submission-empty').textContent = 'Latest submission received:';
+    const output = document.getElementById('submission-output');
+    output.replaceChildren();
+
+    const table = document.createElement('table');
+    table.id = 'submitted-data-table';
+    table.innerHTML = '<thead><tr><th>Field</th><th>Submitted value</th></tr></thead>';
+    const tbody = document.createElement('tbody');
+    for (const [key, value] of Object.entries(submittedValues)) {
+      const row = document.createElement('tr');
+      const fieldCell = document.createElement('td');
+      const valueCell = document.createElement('td');
+      fieldCell.textContent = key;
+      valueCell.textContent = Array.isArray(value) ? value.join(', ') : String(value || '(empty)');
+      row.append(fieldCell, valueCell);
+      tbody.appendChild(row);
+    }
+    table.appendChild(tbody);
+    output.appendChild(table);
+
+    const history = document.getElementById('submission-history');
+    if (submissionHistory.length === 1) history.replaceChildren();
+    const historyItem = document.createElement('li');
+    historyItem.textContent = 'Submission #' + submissionHistory.length +
+      ' — ' + (submittedValues.fullName || '(unnamed)') +
+      ' — ' + new Date().toLocaleTimeString();
+    history.appendChild(historyItem);
+  });
+  form.addEventListener('reset', () => setTimeout(() => status.textContent = 'Form reset.', 0));
+  document.getElementById('fill-form').addEventListener('click', () => {
+    document.getElementById('full-name').value = 'Alex Tester';
+    document.getElementById('email').value = 'alex@example.com';
+    document.getElementById('password').value = 'SamplePass123';
+    document.getElementById('number').value = 42;
+    document.getElementById('gender-male').checked = true;
+    status.textContent = 'Sample data filled.';
+  });
+  document.getElementById('check-validity').addEventListener('click', () => {
+    const el = document.getElementById('required-field');
+    document.getElementById('validation-status').textContent = el.checkValidity() ? 'Required field is valid.' : 'Required field is invalid: ' + el.validationMessage;
+  });
+  document.getElementById('toggle-disabled').addEventListener('click', () => {
+    const el = document.getElementById('disabled-field'); el.disabled = !el.disabled;
+  });
+  document.getElementById('toggle-hidden').addEventListener('click', () => document.getElementById('hidden-message').classList.toggle('hidden'));
+  document.getElementById('normal-button').addEventListener('click', () => document.getElementById('interaction-status').textContent = 'Normal button clicked.');
+  document.getElementById('double-click-button').addEventListener('dblclick', () => document.getElementById('interaction-status').textContent = 'Double-click detected.');
+  document.getElementById('right-click-button').addEventListener('contextmenu', e => { e.preventDefault(); document.getElementById('interaction-status').textContent = 'Right-click detected.'; });
+  document.getElementById('delayed-button').addEventListener('click', e => { e.target.disabled = true; e.target.textContent = 'Please wait...'; setTimeout(() => { e.target.disabled = false; e.target.textContent = 'Wait 2 seconds'; document.getElementById('interaction-status').textContent = 'Delayed action completed.'; }, 2000); });
+  document.getElementById('new-tab-button').addEventListener('click', () => window.open('about:blank', '_blank'));
+  document.getElementById('alert-button').addEventListener('click', () => alert('Practice alert'));
+  document.getElementById('confirm-button').addEventListener('click', () => document.getElementById('interaction-status').textContent = confirm('Do you want to continue?') ? 'Confirm accepted.' : 'Confirm cancelled.');
+  document.getElementById('prompt-button').addEventListener('click', () => document.getElementById('interaction-status').textContent = 'Prompt result: ' + prompt('Enter a value:'));
+  const source = document.getElementById('drag-source'), target = document.getElementById('drop-target');
+  source.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', e.target.id));
+  target.addEventListener('dragover', e => e.preventDefault());
+  target.addEventListener('drop', e => { e.preventDefault(); const id = e.dataTransfer.getData('text/plain'); if (id === 'drag-source') { target.textContent = 'Dropped successfully'; document.getElementById('drag-status').textContent = 'Drag status: item dropped.'; } });
+  document.getElementById('add-item').addEventListener('click', () => { const li = document.createElement('li'); li.className = 'dynamic-item'; li.textContent = 'Dynamic item ' + (document.querySelectorAll('.dynamic-item').length + 1); document.getElementById('dynamic-list').appendChild(li); });
+  document.getElementById('remove-item').addEventListener('click', () => { const list = document.getElementById('dynamic-list'); if (list.lastElementChild) list.removeChild(list.lastElementChild); });
+  document.getElementById('change-text').addEventListener('click', () => setTimeout(() => document.getElementById('changing-text').textContent = 'Text changed dynamically.', 1000));
+  document.getElementById('load-data').addEventListener('click', e => { e.target.disabled = true; setTimeout(() => { document.getElementById('async-result').textContent = 'Async result: data loaded successfully.'; e.target.disabled = false; }, 2000); });
+  class PracticeShadow extends HTMLElement {
+    constructor() {
+      super();
+      const root = this.attachShadow({mode:'open'});
+      root.innerHTML = `<style>div{display:flex;gap:8px;flex-wrap:wrap}input,button{font:inherit;padding:8px;border:1px solid #9aa9bb;border-radius:4px}</style><div><input id="shadow-input" placeholder="Shadow DOM input"><button id="shadow-button">Shadow button</button><span id="shadow-result">Waiting</span></div>`;
+      root.querySelector('#shadow-button').addEventListener('click', () => root.querySelector('#shadow-result').textContent = 'Shadow button clicked');
+    }
+  }
+  customElements.define('practice-shadow', PracticeShadow);
+</script>
+</body>
+</html>
