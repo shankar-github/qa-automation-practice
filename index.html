@@ -57,9 +57,9 @@
         <div class="field"><label for="full-name">Full name *</label><input id="full-name" name="fullName" type="text" placeholder="Enter your name" required></div>
         <div class="field"><label for="email">Email *</label><input id="email" name="email" type="email" placeholder="name@example.com" required></div>
         <div class="field"><label for="password">Password *</label><input id="password" name="password" type="password" placeholder="Enter password" minlength="6" required></div>
-        <div class="field"><label for="phone">Telephone</label><input id="phone" name="phone" type="tel" placeholder="+977-98XXXXXXXX"></div>
-        <div class="field"><label for="number">Number (1–100)</label><input id="number" name="number" type="number" min="1" max="100" value="10"></div>
-        <div class="field"><label for="search">Search</label><input id="search" name="search" type="search" placeholder="Search text"></div>
+        <div class="field"><label for="phone">Telephone *</label><input id="phone" name="phone" type="tel" placeholder="10-digit phone number" inputmode="numeric" pattern="[0-9]{10}" minlength="10" maxlength="10" title="Enter exactly 10 digits" required></div>
+        <div class="field"><label for="age">Age *</label><input id="age" name="age" type="number" min="1" max="120" step="1" value="42" required></div>
+        <div class="field"><label for="address">Address</label><input id="address" name="address" type="text" placeholder="Enter your address"></div>
         <div class="field"><label for="website">URL</label><input id="website" name="website" type="url" placeholder="https://example.com"></div>
       </div>
       <h3>Gender *</h3>
@@ -403,7 +403,9 @@
     document.getElementById('full-name').value = 'Alex Tester';
     document.getElementById('email').value = 'alex@example.com';
     document.getElementById('password').value = 'SamplePass123';
-    document.getElementById('number').value = 42;
+    document.getElementById('phone').value = '9812345678';
+document.getElementById('age').value = 42;
+document.getElementById('address').value = 'Kathmandu, Nepal';
     document.getElementById('gender-male').checked = true;
     status.textContent = 'Sample data filled.';
   });
